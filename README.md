@@ -1,9 +1,9 @@
-# PeakCut
+# PrimeCut
 
 Turn long videos and live streams into captioned vertical clips, ready to post. Free and open source: run it on
 your own computer or server, with your own AI key.
 
-Paste a YouTube, Twitch or Kick link (or upload a file) and PeakCut finds the moments worth clipping, cuts them to
+Paste a YouTube, Twitch or Kick link (or upload a file) and PrimeCut finds the moments worth clipping, cuts them to
 9:16, adds word-by-word captions and a hook, and can post them to your connected accounts. It can also record a
 creator's live stream and clip the highlights while the stream is still running.
 
@@ -17,21 +17,21 @@ creator's live stream and clip the highlights while the stream is still running.
 - **Posting.** Connect YouTube, Instagram and TikTok in one click, then queue or auto-post finished clips, with
   spacing and daily caps (see [DEPLOY.md](DEPLOY.md#connecting-youtube-instagram-and-tiktok) for the one-time setup).
 - **No sign-in on your own computer.** It opens straight into the dashboard. On a shared server, switch accounts on
-  (`PEAKCUT_ACCOUNTS=1`) for email or Google sign-in and an admin dashboard.
+  (`PRIMECUT_ACCOUNTS=1` or `PEAKCUT_ACCOUNTS=1`) for email or Google sign-in and an admin dashboard.
 - **Your own AI.** Gemini, OpenAI, Grok, Groq, OpenRouter, Claude, a local model through Ollama, or anything that
   speaks the OpenAI chat format. No key at all also works: clips are then picked by loudness.
 
 ## Quick start
 
 You need Python 3.10 or newer and `ffmpeg`. On Windows: `winget install Gyan.FFmpeg`. On a Mac: `brew install ffmpeg`.
-On Linux: `sudo apt install ffmpeg`. PeakCut finds it by itself and tells you in the dashboard if it is missing.
+On Linux: `sudo apt install ffmpeg`. PrimeCut finds it by itself and tells you in the dashboard if it is missing.
 
 ```bash
-git clone <this repository> peakcut
+git clone <this repository> primecut
 ```
 
 ```bash
-cd peakcut
+cd primecut
 ```
 
 ```bash
@@ -51,19 +51,19 @@ your AI service, paste your key and press **Save and test** (see [Choose your AI
 
 ## Choose your AI
 
-PeakCut needs a chat model that can return JSON. The easy way is in the dashboard: **Settings, AI**. Pick the
+PrimeCut needs a chat model that can return JSON. The easy way is in the dashboard: **Settings, AI**. Pick the
 service, paste your key, press **Find models** to choose from the service's own list, then **Save and test**. The
 key is kept in the data folder on your machine and is never shown again.
 
 If you prefer a file (or run a server), the same three things can go in `.env`. What is saved in the dashboard wins:
 
 ```ini
-PEAKCUT_AI_PROVIDER=gemini
-PEAKCUT_AI_MODELS=gemini-2.5-flash
-PEAKCUT_AI_KEY=your-key-here
+PRIMECUT_AI_PROVIDER=gemini
+PRIMECUT_AI_MODELS=gemini-2.5-flash
+PRIMECUT_AI_KEY=your-key-here
 ```
 
-| `PEAKCUT_AI_PROVIDER` | Service | Where to get a key |
+| `PRIMECUT_AI_PROVIDER` | Service | Where to get a key |
 |---|---|---|
 | `gemini` | Google Gemini | https://aistudio.google.com/apikey |
 | `openai` | OpenAI | https://platform.openai.com/api-keys |
@@ -72,9 +72,9 @@ PEAKCUT_AI_KEY=your-key-here
 | `openrouter` | OpenRouter (many models, one key) | https://openrouter.ai/keys |
 | `anthropic` | Claude | https://console.anthropic.com |
 | `ollama` | A model on your own machine, no key | https://ollama.com |
-| `custom` | Any OpenAI-compatible address: also set `PEAKCUT_AI_BASE_URL` | |
+| `custom` | Any OpenAI-compatible address: also set `PRIMECUT_AI_BASE_URL` | |
 
-- `PEAKCUT_AI_MODELS` is the model id exactly as the service names it. Model names change often, so check the
+- `PRIMECUT_AI_MODELS` is the model id exactly as the service names it. Model names change often, so check the
   service's current list. Several ids separated by commas are tried in order, which gives you a fallback.
 - A fast, inexpensive model is the right choice. A one-hour video is read in about four requests.
 - You pay the AI service directly for what you use. The **AI usage** page in the app shows how many requests and
@@ -88,19 +88,21 @@ Everything is set through environment variables, normally in a `.env` file next 
 
 | Setting | What it is for |
 |---|---|
-| `PEAKCUT_AI_PROVIDER`, `PEAKCUT_AI_MODELS`, `PEAKCUT_AI_KEY` | The AI that picks clips and writes titles (or set it in the dashboard) |
-| `PEAKCUT_ACCOUNTS` | `1` makes everyone sign in. Use it on any server other people can reach |
+| `PRIMECUT_AI_PROVIDER`, `PRIMECUT_AI_MODELS`, `PRIMECUT_AI_KEY` | The AI that picks clips and writes titles (or set it in the dashboard) |
+| `PRIMECUT_ACCOUNTS` | `1` makes everyone sign in. Use it on any server other people can reach |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional: Sign in with Google, and connecting YouTube |
-| `PEAKCUT_SMTP_*`, `PEAKCUT_MAIL_FROM` | Optional: confirmation and password emails |
-| `PEAKCUT_DATA` | Where videos, clips and the database are kept (default `./data`) |
+| `PRIMECUT_SMTP_*`, `PRIMECUT_MAIL_FROM` | Optional: confirmation and password emails |
+| `PRIMECUT_DATA` | Where videos, clips and the database are kept (default `./data`) |
+
+*(Note: legacy `PEAKCUT_*` environment variables are also supported seamlessly for backward compatibility).*
 
 `.env`, the `secrets/` folder and all user data are ignored by git. Keep keys there, never in the code.
 
 ## Admins
 
-This only matters with accounts switched on (`PEAKCUT_ACCOUNTS=1`); without them you are the owner and can do
+This only matters with accounts switched on (`PRIMECUT_ACCOUNTS=1`); without them you are the owner and can do
 everything. An account is an admin only when the database says so. No email address is special in the code and no web request
-can change a role. Do it on the machine that runs PeakCut:
+can change a role. Do it on the machine that runs PrimeCut:
 
 ```bash
 python -m studio.admin grant you@example.com
@@ -125,20 +127,20 @@ assistants.
 
 ## Where your videos and clips are kept
 
-Everything PeakCut keeps is in one folder: videos, clips, recordings, creators, settings and the speech model. By
-default it is the `data` folder inside PeakCut. **Settings, Storage** shows the folder and how much room its drive
-has, opens it in one click, and lets you move it to another drive: choose the new folder, and PeakCut moves
-everything there the next time it starts. If the drive is nearly full, PeakCut says so and stops taking new videos
-until there is room. (`PEAKCUT_DATA` in `.env` still works and takes priority.)
+Everything PrimeCut keeps is in one folder: videos, clips, recordings, creators, settings and the speech model. By
+default it is the `data` folder inside PrimeCut. **Settings, Storage** shows the folder and how much room its drive
+has, opens it in one click, and lets you move it to another drive: choose the new folder, and PrimeCut moves
+everything there the next time it starts. If the drive is nearly full, PrimeCut says so and stops taking new videos
+until there is room. (`PRIMECUT_DATA` or `PEAKCUT_DATA` in `.env` still works and takes priority.)
 
 ## Updating
 
-PeakCut checks GitHub once a minute while it runs. When a newer version is out, the dashboard shows a notice
+PrimeCut checks GitHub once a minute while it runs. When a newer version is out, the dashboard shows a notice
 within a minute or two (no restart needed), with what changed
 and how to update: ask your AI coding assistant to do it (the notice has a sentence to paste), or run
-`git pull && pip install -r requirements.txt` in the PeakCut folder and restart it (with Docker:
+`git pull && pip install -r requirements.txt` in the PrimeCut folder and restart it (with Docker:
 `git pull && docker compose up -d --build`). Your `.env`, keys and clips are not touched. Only the two commit ids
-are sent to GitHub; set `PEAKCUT_UPDATE_CHECK=0` to turn the check off.
+are sent to GitHub; set `PRIMECUT_UPDATE_CHECK=0` to turn the check off.
 
 ## Deploy
 
@@ -169,7 +171,7 @@ queue tests against it, then removes it. It needs no keys and never touches real
 
 ## Security
 
-- With sign-in off, PeakCut listens on this computer only (`127.0.0.1`), refuses changes sent by other websites,
+- With sign-in off, PrimeCut listens on this computer only (`127.0.0.1`), refuses changes sent by other websites,
   and only answers to its own address. Do not expose it to the internet that way: turn accounts on.
 - Passwords are stored only as salted scrypt hashes. Sessions are random tokens stored hashed; cookies are HTTP-only.
 - Every route works out who is asking from the session, never from the request, so users only reach their own data.

@@ -1,10 +1,10 @@
-"""Where PeakCut keeps everything: one folder, which the owner can see, open and move.
+"""Where PrimeCut keeps everything: one folder, which the owner can see, open and move.
 
-Everything PeakCut makes or downloads lives in one folder: the videos, the clips, the recordings, the list of
-creators, the database and the speech model. By default that is the "data" folder inside PeakCut's own folder.
+Everything PrimeCut makes or downloads lives in one folder: the videos, the clips, the recordings, the list of
+creators, the database and the speech model. By default that is the "data" folder inside PrimeCut's own folder.
 It can be moved (to a bigger drive, for instance) from Settings, Storage: the choice is written to storage.json,
-and the next time PeakCut starts it moves what is there and carries on from the new place (see config.py; nothing
-is moved while PeakCut is running, when files are open)."""
+and the next time PrimeCut starts it moves what is there and carries on from the new place (see config.py; nothing
+is moved while PrimeCut is running, when files are open)."""
 import json
 import os
 import subprocess
@@ -46,9 +46,9 @@ def full_message() -> str:
         free = shutil_free(config.DATA_DIR)
     except OSError:
         free = 0.0
-    return (f"The drive PeakCut saves to ({drive_of(config.DATA_DIR)}) is almost full: {free:.1f} GB free, and PeakCut needs "
+    return (f"The drive PrimeCut saves to ({drive_of(config.DATA_DIR)}) is almost full: {free:.1f} GB free, and PrimeCut needs "
             f"at least {load.MIN_FREE_DISK_GB:g} GB to make clips safely. Free up some space on that drive, or move "
-            f"PeakCut's folder to a bigger drive in Settings, Storage.")
+            f"PrimeCut's folder to a bigger drive in Settings, Storage.")
 
 
 def shutil_free(path: Path) -> float:
@@ -81,7 +81,7 @@ def info(local: bool) -> dict:
 
 
 def open_folder():
-    """Show PeakCut's folder in the computer's file manager."""
+    """Show PrimeCut's folder in the computer's file manager."""
     p = str(config.DATA_DIR.resolve())
     if sys.platform == "win32":
         os.startfile(p)                                   # noqa: S606 - the owner's own folder, on their own computer
@@ -92,7 +92,7 @@ def open_folder():
 
 
 _PICK = ("import tkinter as tk\nfrom tkinter import filedialog\nr = tk.Tk()\nr.withdraw()\nr.attributes('-topmost', True)\n"
-         "print(filedialog.askdirectory(title='Choose where PeakCut keeps its videos and clips') or '')\n")
+         "print(filedialog.askdirectory(title='Choose where PrimeCut keeps its videos and clips') or '')\n")
 
 
 def pick_folder() -> str:
@@ -110,28 +110,28 @@ def change(path: str, move: bool = True) -> dict:
     """Choose a new folder. It is checked now (it can be made, written to, and has room) and used from the next
     start; with `move`, what is in the current folder is moved there then."""
     if config.DATA_FROM == "env":
-        raise ValueError("The folder is set with PEAKCUT_DATA in the .env file. Change it there, or remove that line to choose it here.")
+        raise ValueError("The folder is set with PRIMECUT_DATA in the .env file. Change it there, or remove that line to choose it here.")
     raw = str(path or "").strip().strip('"')
     if not raw:
         raise ValueError("Choose a folder.")
     new = Path(os.path.expanduser(raw))
     if not new.is_absolute():
-        raise ValueError("Give the whole path of the folder, for example D:\\PeakCut.")
+        raise ValueError("Give the whole path of the folder, for example D:\\PrimeCut.")
     new, old = new.resolve(), config.DATA_DIR.resolve()
     if new == old:
-        raise ValueError("That is the folder PeakCut already uses.")
+        raise ValueError("That is the folder PrimeCut already uses.")
     if old in new.parents or new in old.parents:
-        raise ValueError("Choose a folder that is not inside PeakCut's current folder (or the other way round).")
+        raise ValueError("Choose a folder that is not inside PrimeCut's current folder (or the other way round).")
     try:
         new.mkdir(parents=True, exist_ok=True)
-        probe = new / ".peakcut-write-test"
+        probe = new / ".primecut-write-test"
         probe.write_text("ok", encoding="utf-8")
         probe.unlink()
     except OSError:
-        raise ValueError("PeakCut can't write to that folder. Choose another one, or check the drive is connected.")
+        raise ValueError("PrimeCut can't write to that folder. Choose another one, or check the drive is connected.")
     need = used_bytes() / 1e9 if move and drive_of(new) != drive_of(old) else 0.0
     if shutil_free(new) < need + load.MIN_FREE_DISK_GB:
-        raise ValueError(f"There isn't enough room there: {shutil_free(new):.1f} GB free, and PeakCut needs about "
+        raise ValueError(f"There isn't enough room there: {shutil_free(new):.1f} GB free, and PrimeCut needs about "
                          f"{need + load.MIN_FREE_DISK_GB:.1f} GB.")
     data = {"path": str(new)}
     if move:
